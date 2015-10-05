@@ -1,9 +1,15 @@
-function Constraints = fmlp_buildConstraints(mpc,x,Ploads,addVar,systemName,caseName,idxVarPQ,gen_a,gen_b)
+function Constraints = fmlp_buildConstraints(mpc,x,Ploads,addVar,systemName,idxVarPQ,gen_a,gen_b)
 %% Getting the settings for this case
 define_constants;
-caseSettings = getSystemSettings(systemName,caseName);
-System = ch_system_init(mpc,caseSettings);
-n = System.indices.nbus;
+% caseSettings = getSystemSettings(systemName,caseName);
+% System = ch_system_init(mpc,caseSettings);
+n = size(mpc.bus,1);
+
+% Power factor of the loads
+indNZ = find(mpc.bus(:,PD));
+Q_P = zeros(n,1);
+Q_P(indNZ) = mpc.bus(indNZ,QD)./mpc.bus(indNZ,PD);
+
 idxslack = find(mpc.bus(:,BUS_TYPE) == REF);
 % if isempty(gen_a) && isempty(gen_b)
     idxpq = find(mpc.bus(:,BUS_TYPE) == PQ);
@@ -37,7 +43,7 @@ end
 fprintf('The current surface is %s \n',mode);
 
 % Build matrices
-[Yis,Ytis,Mis,Mislack_Vr,Mislack_Vq] = buildYMmats(systemName,caseName);
+[Yis,Ytis,Mis,Mislack_Vr,Mislack_Vq] = buildYMmats(systemName);
 
 if isempty(mpc.wind)
     mpc.wind = [0 0 0 0];
@@ -67,7 +73,7 @@ end
 for i = 1:npq
     idxi = idxpq(i);
     Constraints = [Constraints,...
-        x'*Ytis{idxi}*x+System.Q_P(idxi)*Ploads(idxi) == 0];
+        x'*Ytis{idxi}*x+Q_P(idxi)*Ploads(idxi) == 0];
 end
 
 if strcmp(mode,'snb') || strcmp(mode,'sll')
@@ -77,7 +83,7 @@ if strcmp(mode,'snb') || strcmp(mode,'sll')
         idxGeni = idxGenB(i);
         idxi = mpc.gen(idxGeni,GEN_BUS);
         Constraints = [Constraints,...
-            x'*Ytis{idxi}*x+System.Q_P(idxi)*Ploads(idxi) - mpc.gen(idxi,QMAX) == 0];
+            x'*Ytis{idxi}*x+Q_P(idxi)*Ploads(idxi) - mpc.gen(idxi,QMAX) == 0];
     end
 end
 
@@ -92,7 +98,7 @@ end
 for i = 1:length(listGen)
     idxi = listGen(i);
     Constraints = [Constraints,...
-        x'*Ytis{idxi}*x+System.Q_P(idxi).*Ploads(idxi) <= mpc.gen(mpc.gen(:,GEN_BUS) == idxi,QMAX)];
+        x'*Ytis{idxi}*x+Q_P(idxi).*Ploads(idxi) <= mpc.gen(mpc.gen(:,GEN_BUS) == idxi,QMAX)];
 end
 
 % V = Vref at slack and Vq = 0
@@ -129,7 +135,7 @@ end
 if strcmp(mode,'snb')
     Constraints = [Constraints,...
         v'*v == 1];
-    Jac = buildJacobiansRec(systemName,caseName,mpc,x,gen_a,gen_b);
+    Jac = buildJacobiansRec(systemName,mpc,x,gen_a,gen_b);
 %     Jac(n+[n-1 n],:) = []; % Removing the equations for the slack
 %     Jac(:,[1 n+1]) = []; % Removing the variables Vr and Vq of the slack
     Jac([2*n-1 2*n],:) = []; % Removing the equations for the slack
@@ -147,11 +153,11 @@ if strcmp(mode,'sll')
     gen_a_pre = gen_a;
     gen_b_pre = gen_b;
     gen_b_pre(nbussll) = 0;
-    Jac_pre = buildJacobiansRec(systemName,caseName,mpc,x,gen_a_pre,gen_b_pre);
+    Jac_pre = buildJacobiansRec(systemName,mpc,x,gen_a_pre,gen_b_pre);
     gen_a_post = gen_a;
     gen_b_post = gen_b;
     gen_a_post(nbussll) = 0;
-    Jac_post = buildJacobiansRec(systemName,caseName,mpc,x,gen_a_post,gen_b_post);
+    Jac_post = buildJacobiansRec(systemName,mpc,x,gen_a_post,gen_b_post);
     
     % Constraint SLL 1: direction of increase of both Vr (critical) and
     % Vq (critical)
@@ -197,11 +203,11 @@ if strcmp(mode,'sll')
     Constraints = [Constraints,...
         Jac_pre(critnode,:)*dX_pre >= 0];
     Constraints = [Constraints,...
-        (Jac_pre(critnode,:)-System.Q_P(critnode)*Jac_pre(n+critnode,:))*dX_pre == 0];
+        (Jac_pre(critnode,:)-Q_P(critnode)*Jac_pre(n+critnode,:))*dX_pre == 0];
     Constraints = [Constraints,...
         Jac_post(critnode,:)*dX_post <= 0];
     Constraints = [Constraints,...
-        (Jac_post(critnode,:)-System.Q_P(critnode)*Jac_post(n+critnode,:))*dX_pre == 0];
+        (Jac_post(critnode,:)-Q_P(critnode)*Jac_post(n+critnode,:))*dX_pre == 0];
 end
 
 % Ploads positive

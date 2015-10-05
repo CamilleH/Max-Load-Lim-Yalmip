@@ -1,4 +1,4 @@
-function results = findmaxll(systemName,caseName,idxVarPQ,dir)
+function results = findmaxll(systemName,idxVarPQ,dir)
 % FINDMAXLL finds the maximum loadability limit point in a particular
 % direction by using the YALMIP implementation that is formulated with the
 % voltages expressed in rectangular coordinates.
@@ -6,7 +6,7 @@ function results = findmaxll(systemName,caseName,idxVarPQ,dir)
 %% Open the system file and creates the necessary matrices
 define_constants;
 mpc = openCase(systemName);
-caseSettings = getSystemSettings(systemName,caseName);
+% caseSettings = getSystemSettings(systemName,caseName);
 % idxVarPQ = caseSettings.indLoads;
 % System = ch_system_init(mpc,caseSettings);
 % n = System.indices.nbus;
@@ -29,7 +29,7 @@ assign(x,ones(2*n,1));
 assign(Ploads,mpc.bus(:,PD));
 lambda = sdpvar(1,1);
 Objective = -lambda;
-Constraints = fmlp_buildConstraints(mpc,x,Ploads,[],systemName,caseName,idxVarPQ,[],[]);
+Constraints = fmlp_buildConstraints(mpc,x,Ploads,[],systemName,idxVarPQ,[],[]);
 Constraints = [Constraints,...
     Ploads == mpc.bus(:,PD)+lambda*dirP];
 options = sdpsettings('verbose',0,'showprogress',1,'fmincon.Algorithm', 'interior-point','usex0',1);

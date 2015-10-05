@@ -18,6 +18,7 @@ idxslack = find(mpc.bus(:,BUS_TYPE) == REF);
 %     idxpv = mpc.gen(gen_a == 1,GEN_BUS);
 %     idxpq = setdiff(1:n,[idxpv;idxslack]);
 % end
+
 npv = length(idxpv);
 npq = length(idxpq);
 idxGenA = find(gen_a);
@@ -43,9 +44,9 @@ end
 fprintf('The current surface is %s \n',mode);
 
 % Build matrices
-[Yis,Ytis,Mis,Mislack_Vr,Mislack_Vq] = buildYMmats(systemName);
+[Yis,Ytis,Mis,Mislack_Vr,Mislack_Vq] = buildYMmats(mpc);
 
-if isempty(mpc.wind)
+if ~isfield(mpc,'wind') || isempty(mpc.wind)
     mpc.wind = [0 0 0 0];
 end
 
@@ -135,7 +136,7 @@ end
 if strcmp(mode,'snb')
     Constraints = [Constraints,...
         v'*v == 1];
-    Jac = buildJacobiansRec(systemName,mpc,x,gen_a,gen_b);
+    Jac = buildJacobiansRec(mpc,x,gen_a,gen_b);
 %     Jac(n+[n-1 n],:) = []; % Removing the equations for the slack
 %     Jac(:,[1 n+1]) = []; % Removing the variables Vr and Vq of the slack
     Jac([2*n-1 2*n],:) = []; % Removing the equations for the slack
@@ -153,11 +154,11 @@ if strcmp(mode,'sll')
     gen_a_pre = gen_a;
     gen_b_pre = gen_b;
     gen_b_pre(nbussll) = 0;
-    Jac_pre = buildJacobiansRec(systemName,mpc,x,gen_a_pre,gen_b_pre);
+    Jac_pre = buildJacobiansRec(mpc,x,gen_a_pre,gen_b_pre);
     gen_a_post = gen_a;
     gen_b_post = gen_b;
     gen_a_post(nbussll) = 0;
-    Jac_post = buildJacobiansRec(systemName,mpc,x,gen_a_post,gen_b_post);
+    Jac_post = buildJacobiansRec(mpc,x,gen_a_post,gen_b_post);
     
     % Constraint SLL 1: direction of increase of both Vr (critical) and
     % Vq (critical)

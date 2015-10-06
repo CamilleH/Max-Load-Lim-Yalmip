@@ -1,4 +1,4 @@
-function Constraints = fmlp_buildConstraints(mpc,x,Ploads,addVar,systemName,idxVarPQ,gen_a,gen_b)
+function Constraints = fmlp_buildConstraints(mpc,x,Ploads,addVar,idxVarPQ,gen_a,gen_b)
 %% Getting the settings for this case
 define_constants;
 % caseSettings = getSystemSettings(systemName,caseName);

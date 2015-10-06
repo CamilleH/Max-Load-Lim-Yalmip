@@ -1,6 +1,6 @@
-function fmlp_printResults(mpc,x,Ploads,systemName,caseName)
+function fmlp_printResults(mpc,x,Ploads)
 define_constants;
-[Qgen,Vgen] = computeVarAfterPF(mpc,x,Ploads,systemName,caseName);
+[Qgen,Vgen] = computeVarAfterPF(mpc,x,Ploads);
 
 fprintf('Loads:\n');
 Ploads'

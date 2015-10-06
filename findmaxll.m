@@ -29,7 +29,7 @@ assign(x,ones(2*n,1));
 assign(Ploads,mpc.bus(:,PD));
 lambda = sdpvar(1,1);
 Objective = -lambda;
-Constraints = fmlp_buildConstraints(mpc,x,Ploads,[],systemName,idxVarPQ,[],[]);
+Constraints = fmlp_buildConstraints(mpc,x,Ploads,[],idxVarPQ,[],[]);
 Constraints = [Constraints,...
     Ploads == mpc.bus(:,PD)+lambda*dirP];
 options = sdpsettings('verbose',0,'showprogress',1,'fmincon.Algorithm', 'interior-point','usex0',1);

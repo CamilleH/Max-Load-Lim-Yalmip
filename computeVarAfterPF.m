@@ -1,22 +1,19 @@
-function [Qgen,Vgen] = computeVarAfterPF(mpc,x,Ploads)
+function [Qgen,Vgen] = computeVarAfterPF(mpc)
 define_constants;
 
-% Power factor of the loads
-n = size(mpc.bus,1);
-indNZ = find(mpc.bus(:,PD));
-Q_P = zeros(n,1);
-Q_P(indNZ) = mpc.bus(indNZ,QD)./mpc.bus(indNZ,PD);
+% x is made of the real and imaginary parts of the voltage
+V = mpc.bus(:,VM).*exp(1i*mpc.bus(:,VA)*pi/180);
+x = [real(V);imag(V)];
 
 idxpv = find(mpc.bus(:,BUS_TYPE) == PV);
 npv = length(idxpv);
-
 Qgen = zeros(npv,1);
 Vgen = zeros(npv,1);
 
 [~,Ytis,Mis,~] = buildYMmats(mpc);
 for i = 1:npv
     idxi = idxpv(i);
-    Qgen(i) = x'*Ytis{idxi}*x+Q_P(idxi)*Ploads(idxi);
+    Qgen(i) = x'*Ytis{idxi}*x+mpc.bus(idxi,QD);
     Vgen(i) = sqrt(x'*Mis{idxi}*x);
 end
 

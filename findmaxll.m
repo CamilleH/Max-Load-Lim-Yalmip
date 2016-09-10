@@ -21,8 +21,6 @@ end
 
 %% Optimization problem
 % Parameters
-% gen_a = [];
-% gen_b = [];
 dirP = zeros(n,1);
 dirP(idxVarPQ) = dir;
 
@@ -45,6 +43,18 @@ lambda = norm(Ploadsopt1(idxVarPQ)-mu);
 results.Ploads = value(Ploads)*mpc.baseMVA;
 results.x = value(x);
 results.lambda = lambda;
+% Determining the generators that are at their limits
+[gen_a,gen_b] = determineGenSetsAB(mpc,xopt,Ploadsopt);
+idx_bus_sll = gen_a & gen_b;
+if sum(idx_bus_sll) > 0
+    results.bif.short_name = 'LIB';
+    results.bif.full_name = 'limit-induced bifurcation';
+    results.bif.gen_sll = find(idx_bus_sll);
+else
+    results.bif.short_name = 'SNB';
+    results.bif.full_name = 'saddle-node bifurcation';
+end
+
 % Putting the results into the original system in MVA
 mpc = mpc0; 
 mpc.bus(idxVarPQ,PD) = results.Ploads;

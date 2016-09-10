@@ -1,11 +1,10 @@
-function results = findmaxll(systemName,idxVarPQ,dir)
+function results = findmaxll(mpc,idxVarPQ,dir)
 % FINDMAXLL finds the maximum loadability limit point in a particular
 % direction by using the YALMIP implementation that is formulated with the
 % voltages expressed in rectangular coordinates.
 %    DIR is the direction of load increase
 %% Open the system file and creates the necessary matrices
 define_constants;
-mpc = loadcase(systemName);
 n = size(mpc.bus,1);
 mu = mpc.bus(idxVarPQ,PD);
 
@@ -43,7 +42,7 @@ sol = optimize(Constraints,Objective,options);
 % Extracting the result
 Ploadsopt1 = value(Ploads);
 lambda = norm(Ploadsopt1(idxVarPQ)-mu);
-results.Ploads = Ploads;
-results.x = x;
+results.Ploads = value(Ploads);
+results.x = value(x);
 results.lambda = lambda;
 end

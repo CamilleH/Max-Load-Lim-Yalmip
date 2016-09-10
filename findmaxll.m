@@ -5,13 +5,18 @@ function results = findmaxll(systemName,idxVarPQ,dir)
 %    DIR is the direction of load increase
 %% Open the system file and creates the necessary matrices
 define_constants;
-mpc = openCase(systemName);
-% caseSettings = getSystemSettings(systemName,caseName);
-% idxVarPQ = caseSettings.indLoads;
-% System = ch_system_init(mpc,caseSettings);
-% n = System.indices.nbus;
+mpc = loadcase(systemName);
 n = size(mpc.bus,1);
 mu = mpc.bus(idxVarPQ,PD);
+
+%% Scale to per-unit
+mpc.bus(:,[PD,QD]) = mpc.bus(:,[PD,QD])/mpc.baseMVA;
+mpc.gen(:,[PG,QG]) = mpc.gen(:,[PG,QG])/mpc.baseMVA;
+mpc.gen(:,[QMAX,QMIN]) = mpc.gen(:,[QMAX,QMIN])/mpc.baseMVA;
+if isfield(mpc,'wind') && ~isempty(mpc.wind)
+    mpc.wind(:,[PG,QG]) = mpc.wind(:,[PG,QG])/mpc.baseMVA;
+    mpc.wind(:,4) = mpc.wind(:,4)/mpc.baseMVA; % wind farm capacity
+end
 
 %% Optimization problem
 % Parameters

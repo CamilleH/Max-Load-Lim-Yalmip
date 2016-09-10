@@ -1,4 +1,4 @@
-function results = findmaxll(mpc,idxVarPQ,dir)
+function results = findmaxll(mpc,dir)
 % FINDMAXLL finds the maximum loadability limit point in a particular
 % direction by using the YALMIP implementation that is formulated with the
 % voltages expressed in rectangular coordinates.
@@ -6,7 +6,7 @@ function results = findmaxll(mpc,idxVarPQ,dir)
 %% Open the system file and creates the necessary matrices
 define_constants;
 n = size(mpc.bus,1);
-mu = mpc.bus(idxVarPQ,PD);
+idxVarPQ = find(dir);
 
 %% Scale to per-unit
 mpc0 = mpc;
@@ -21,8 +21,7 @@ end
 
 %% Optimization problem
 % Parameters
-dirP = zeros(n,1);
-dirP(idxVarPQ) = dir;
+dirP = dir;
 
 % optimization problem
 x = sdpvar(2*n,1);
@@ -41,13 +40,12 @@ sol = optimize(Constraints,Objective,options);
 Ploads_val = value(Ploads);
 x_val = value(x);
 V_res = x_val(1:n)+1i*x_val(n+1:2*n);
-lambda = norm(Ploads_val(idxVarPQ)-mu);
 results = mpc0; 
 results.bus(idxVarPQ,PD) = Ploads_val(idxVarPQ)*mpc.baseMVA;
 results.bus(idxVarPQ,QD) = tanphi0.*Ploads_val(idxVarPQ);
 results.bus(:,VM) = abs(V_res);
 results.bus(:,VA) = angle(V_res)*180/pi;
-results.stab_marg = lambda;
+results.stab_marg = value(lambda);
 % Determining the generators that are at their limits
 [gen_a,gen_b] = determineGenSetsAB(mpc);
 idx_bus_sll = gen_a & gen_b;
@@ -59,4 +57,6 @@ else
     results.bif.short_name = 'SNB';
     results.bif.full_name = 'saddle-node bifurcation';
 end
+results.bif.gen_a = gen_a;
+results.bif.gen_b = gen_b;
 end

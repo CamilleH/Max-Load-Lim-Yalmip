@@ -33,7 +33,8 @@ Objective = -lambda;
 Constraints = fmlp_buildConstraints(mpc,x,Ploads,[],idxVarPQ,[],[]);
 Constraints = [Constraints,...
     Ploads == mpc.bus(:,PD)+lambda*dirP];
-options = sdpsettings('verbose',0,'showprogress',1,'fmincon.Algorithm', 'interior-point','usex0',1);
+options = sdpsettings('verbose',0,'showprogress',1,'fmincon.Algorithm',...
+    'interior-point','usex0',1,'savesolveroutput',1);
 sol = optimize(Constraints,Objective,options);
 
 % Extracting the result, scaling to MW
@@ -46,6 +47,7 @@ results.bus(idxVarPQ,QD) = tanphi0.*Ploads_val(idxVarPQ);
 results.bus(:,VM) = abs(V_res);
 results.bus(:,VA) = angle(V_res)*180/pi;
 results.stab_marg = value(lambda);
+results.sol = sol;
 % Determining the generators that are at their limits
 [gen_a,gen_b] = determineGenSetsAB(mpc);
 idx_bus_sll = gen_a & gen_b;

@@ -62,19 +62,22 @@ end
 % active power flows at pv and pq
 for i = 1:npv
     idxi = idxpv(i);
+    tag = sprintf('Pmis_pv%d',i);
     Constraints = [Constraints,...
-        x'*Yis{idxi}*x+Ploads(idxi) == sum(mpc.gen(mpc.gen(:,GEN_BUS) == idxi,PG))+sum(mpc.wind(mpc.wind(:,1) == idxi,2))];
+        (x'*Yis{idxi}*x+Ploads(idxi) == sum(mpc.gen(mpc.gen(:,GEN_BUS) == idxi,PG))+sum(mpc.wind(mpc.wind(:,1) == idxi,2))):tag];
 end
 for i = 1:npq
     idxi = idxpq(i);
+    tag = sprintf('Pmis_pq%d',i);
     Constraints = [Constraints,...
-        x'*Yis{idxi}*x+Ploads(idxi) == sum(mpc.gen(mpc.gen(:,GEN_BUS) == idxi,PG))+sum(mpc.wind(mpc.wind(:,1) == idxi,2))];
+        (x'*Yis{idxi}*x+Ploads(idxi) == sum(mpc.gen(mpc.gen(:,GEN_BUS) == idxi,PG))+sum(mpc.wind(mpc.wind(:,1) == idxi,2))):tag];
 end
 % reactive power flows at pq and gen_b in pv
 for i = 1:npq
     idxi = idxpq(i);
+    tag = sprintf('Qmis_pq%d',i);
     Constraints = [Constraints,...
-        x'*Ytis{idxi}*x+Q_P(idxi)*Ploads(idxi) == 0];
+        (x'*Ytis{idxi}*x+Q_P(idxi)*Ploads(idxi) == 0):tag];
 end
 
 if strcmp(mode,'snb') || strcmp(mode,'sll')
@@ -98,8 +101,9 @@ else
 end
 for i = 1:length(listGen)
     idxi = listGen(i);
+    tag = sprintf('Qgen%d',i);
     Constraints = [Constraints,...
-        x'*Ytis{idxi}*x+Q_P(idxi).*Ploads(idxi) <= mpc.gen(mpc.gen(:,GEN_BUS) == idxi,QMAX)];
+        (x'*Ytis{idxi}*x+Q_P(idxi).*Ploads(idxi) <= mpc.gen(mpc.gen(:,GEN_BUS) == idxi,QMAX)):tag];
 end
 
 % V = Vref at slack and Vq = 0
@@ -127,8 +131,9 @@ else
 end
 for i = 1:length(listGen)
     idxi = listGen(i);
+    tag = sprintf('Vgen%d',i);
     Constraints = [Constraints,...
-        x'*Mis{idxi}*x <= mpc.gen(mpc.gen(:,GEN_BUS) == idxi,VG)^2];
+        (x'*Mis{idxi}*x <= mpc.gen(mpc.gen(:,GEN_BUS) == idxi,VG)^2):tag];
 end
 
 % Additional constraints for SNB = taking derivative of all

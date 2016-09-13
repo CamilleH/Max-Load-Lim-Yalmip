@@ -49,21 +49,21 @@ results.bus(:,VA) = angle(V_res)*180/pi;
 results.stab_marg = value(lambda);
 results.sol = sol;
 % Extracting the multipliers
-[ref, pv, pq] = bustypes(results.bus, results.gen);
+[~, pv, pq] = bustypes(results.bus, results.gen);
 npv = length(pv);
 npq = length(pq);
 npvpq = npv+npq;
 ngen = size(results.gen,1);
-nref = length(ref);
 genpv = ismember(results.gen(:,GEN_BUS),pv);
 ngenpv = sum(genpv);
 results.nln.mu.u.Pmis = zeros(2*n,1);
 results.nln.mu.u.Qmis = zeros(2*n,1);
-results.var.mu.u.Qg = zeros(nref+ngen,1);
+results.var.mu.u.Qg = zeros(ngen,1);
 results.var.mu.u.Vm = zeros(n,1);
 results.nln.mu.u.Pmis([pv;pq]) = sol.solveroutput.lambda.eqnonlin(1:npvpq);
 results.nln.mu.u.Qmis(pq) = sol.solveroutput.lambda.eqnonlin(npvpq+(1:npq));
 results.var.mu.u.Qg(genpv) = sol.solveroutput.lambda.ineqnonlin(1:ngenpv);
+results.var.mu.u.Qg(results.var.mu.u.Qg<1e-5) = 0; % numerical approximations can lead to close to zero Lag. multipliers
 % Note: below, we take the Lagrange multiplier lambda_2 of the limit V_g^2 and
 % transform it to the Lagrange multiplier lambda_1 of the limit V_g. The Lag. multi.
 % are such that lambda_1 = - df^* / dV_g and lambda_2 = -df/d(V_g)^2. From

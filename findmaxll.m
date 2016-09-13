@@ -64,7 +64,12 @@ results.var.mu.u.Vm = zeros(n,1);
 results.nln.mu.u.Pmis([pv;pq]) = sol.solveroutput.lambda.eqnonlin(1:npvpq);
 results.nln.mu.u.Qmis(pq) = sol.solveroutput.lambda.eqnonlin(npvpq+(1:npq));
 results.var.mu.u.Qg(genpv) = sol.solveroutput.lambda.ineqnonlin(1:ngenpv);
-results.var.mu.u.Vm(pv) = sol.solveroutput.lambda.ineqnonlin(ngenpv+(1:ngenpv));
+% Note: below, we take the Lagrange multiplier lambda_2 of the limit V_g^2 and
+% transform it to the Lagrange multiplier lambda_1 of the limit V_g. The Lag. multi.
+% are such that lambda_1 = - df^* / dV_g and lambda_2 = -df/d(V_g)^2. From
+% these we get that lambda_1 = 2*V_g*lambda_2
+results.var.mu.u.Vm(pv) = sol.solveroutput.lambda.ineqnonlin(ngenpv+(1:ngenpv))*...
+    2.*results.gen(genpv,VG);
 % Determining the generators that are at their limits
 [gen_a,gen_b] = determineGenSetsAB(mpc);
 idx_bus_sll = gen_a & gen_b;

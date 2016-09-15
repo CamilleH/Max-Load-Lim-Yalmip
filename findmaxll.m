@@ -48,6 +48,7 @@ results.bus(:,VM) = abs(V_res);
 results.bus(:,VA) = angle(V_res)*180/pi;
 results.stab_marg = value(lambda);
 results.sol = sol;
+results.success = sol.problem == 0;
 % Extracting the multipliers
 [~, pv, pq] = bustypes(results.bus, results.gen);
 npv = length(pv);

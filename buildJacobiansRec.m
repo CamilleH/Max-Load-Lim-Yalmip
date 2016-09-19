@@ -1,8 +1,5 @@
 function Jac = buildJacobiansRec(mpc,x,gen_a,gen_b)
 define_constants;
-% caseSettings = getSystemSettings(systemName,caseName);
-% System = ch_system_init(mpc,caseSettings);
-% n = System.indices.nbus;
 n = size(mpc.bus,1);
 idxpv = find(mpc.bus(:,BUS_TYPE) == PV);
 npv = length(idxpv);

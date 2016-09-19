@@ -72,7 +72,7 @@ results.var.mu.u.Qg(results.var.mu.u.Qg<1e-5) = 0; % numerical approximations ca
 results.var.mu.u.Vm(pv) = sol.solveroutput.lambda.ineqnonlin(ngenpv+(1:ngenpv))*...
     2.*results.gen(genpv,VG);
 % Determining the generators that are at their limits
-[gen_a,gen_b] = determineGenSetsAB(mpc);
+[gen_a,gen_b] = determineGenSetsAB(results);
 idx_bus_sll = gen_a & gen_b;
 if sum(idx_bus_sll) > 0
     results.bif.short_name = 'LIB';
